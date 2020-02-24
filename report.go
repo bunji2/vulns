@@ -25,7 +25,14 @@ func (v VulnReport) String() string {
 		v.ID, v.Title, v.Overview, v.Impact,
 		strings.Join(v.CPEs, ","),
 		strings.Join(v.CVEs, ","),
-		strings.Join(pickupCVSSv3(v.CVSSs), ""))
+		strings.Join(v.CVSSv3(), ","))
+	//		strings.Join(pickupCVSSv3(v.CVSSs), ""))
+}
+
+// CVSSv3 は脆弱性レポートの CVSS のリストの中から CVSSv3 を抜き出す関数
+func (v VulnReport) CVSSv3() (r []string) {
+	r = pickupCVSSv3(v.CVSSs)
+	return
 }
 
 // pickupCVSSv3 は与えられた CVSS のリストの中から CVSSv3 を抜き出す関数
