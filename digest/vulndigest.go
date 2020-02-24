@@ -32,12 +32,19 @@ func (d VulnDigest) String() string {
 	}
 	cvss := ""
 	score := ""
-	cvsss := pickupCVSSv3(d.CVSSs)
+	//cvsss := pickupCVSSv3(d.CVSSs)
+	cvsss := d.CVSSv3()
 	if len(cvsss) > 0 {
-		v, e := cvssv3.ParseVector(cvsss[0])
-		if e == nil {
-			score = fmt.Sprintf("\nScore:%4.1f", v.BaseScore())
+		var strScores []string
+		for _, floatScore := range d.BaseScores() {
+			strScores = append(strScores, fmt.Sprintf("%.1f", floatScore))
 		}
+		score = "\nScore:" + strings.Join(strScores, ",")
+		/*		v, e := cvssv3.ParseVector(cvsss[0])
+				if e == nil {
+					score = fmt.Sprintf("\nScore:%4.1f", v.BaseScore())
+				}
+		*/
 		cvss = "\n" + strings.Join(cvsss, ",")
 	}
 	cve := ""
@@ -54,6 +61,40 @@ func (d VulnDigest) String() string {
 		cvss,
 		cve,
 	)
+}
+
+// UniqueVulns は一意な脆弱性キーワードを抽出する関数
+func (d VulnDigest) UniqueVulns() (r []string) {
+	vulnMap := map[string]bool{}
+	for _, vuln := range d.Vulns {
+		vulnMap[vuln] = true
+	}
+	if d.MainVuln != "" {
+		r = append(r, d.MainVuln)
+	}
+	for vuln := range vulnMap {
+		r = append(r, vuln)
+	}
+	return
+}
+
+// BaseScores は脆弱性レポートの CVSSv3 のベーススコアを計算する関数
+func (d VulnDigest) BaseScores() (scores []float64) {
+	for _, cvss := range d.CVSSv3() {
+		score := float64(-1)
+		v, e := cvssv3.ParseVector(cvss)
+		if e == nil {
+			score = v.BaseScore()
+		}
+		scores = append(scores, score)
+	}
+	return
+}
+
+// CVSSv3 は脆弱性レポートの CVSSv3 を抽出する関数
+func (d VulnDigest) CVSSv3() (r []string) {
+	r = pickupCVSSv3(d.CVSSs)
+	return
 }
 
 // pickupCVSSv3 は与えられた CVSS のリストの中から CVSSv3 を抜き出す関数
