@@ -22,3 +22,14 @@ func LoadConfig(filePath string) (c Config, err error) {
 	//fmt.Println("data folder =", c.DataFolder, "use zip =", c.UseGzip)
 	return
 }
+
+// InitConfig は設定をファイルから読み出してパッケージを初期化する関数 LoadConfig してから Init する。
+func InitConfig(filePath string) (err error) {
+	var c Config
+	c, err = LoadConfig(filePath)
+	if err != nil {
+		return
+	}
+	err = Init(c)
+	return
+}
