@@ -19,17 +19,20 @@ type VulnDigest struct {
 }
 
 func (d VulnDigest) String() string {
-	vulnMap := map[string]bool{}
-	for _, vuln := range d.Vulns {
-		vulnMap[vuln] = true
-	}
-	vulns := []string{}
-	if d.MainVuln != "" {
-		vulns = append(vulns, d.MainVuln)
-	}
-	for vuln := range vulnMap {
-		vulns = append(vulns, vuln)
-	}
+	vulns := d.UniqueVulns()
+	/*
+		vulnMap := map[string]bool{}
+		for _, vuln := range d.Vulns {
+			vulnMap[vuln] = true
+		}
+		vulns := []string{}
+		if d.MainVuln != "" {
+			vulns = append(vulns, d.MainVuln)
+		}
+		for vuln := range vulnMap {
+			vulns = append(vulns, vuln)
+		}
+	*/
 	cvss := ""
 	score := ""
 	//cvsss := pickupCVSSv3(d.CVSSs)
