@@ -4,12 +4,15 @@ package main
 // #cgo LDFLAGS: subvulns.o
 // #include "subvulns.h"
 import "C"
-import "fmt"
-import "github.com/bunji2/vulns"
-import "github.com/bunji2/vulns/digest"
+import (
+	"fmt"
+
+	"github.com/bunji2/vulns"
+	"github.com/bunji2/vulns/digest"
+)
 
 // dummy main
-func main(){}
+func main() {}
 
 const (
 	cOK = C.int(0)
@@ -36,14 +39,14 @@ func vulnsReport(id *C.char, dict *C.PyObject) C.int {
 	if err != nil {
 		return cNG
 	}
-	strItems := [][]string {
-		[]string{"ID",r.ID},
-		[]string{"Title",r.Title},
-		[]string{"Overview",r.Overview},
-		[]string{"Impact",r.Impact},
+	strItems := [][]string{
+		[]string{"ID", r.ID},
+		[]string{"Title", r.Title},
+		[]string{"Overview", r.Overview},
+		[]string{"Impact", r.Impact},
 	}
 	for _, item := range strItems {
-		if C.dictSetStr(dict, C.CString(item[0]), C.CString(item[1]))<0 {
+		if C.dictSetStr(dict, C.CString(item[0]), C.CString(item[1])) < 0 {
 			return cNG
 		}
 	}
@@ -66,7 +69,7 @@ func vulnsDigest(id *C.char, dict *C.PyObject) C.int {
 		return cNG
 	}
 	d := digest.Digest(r)
-	if C.dictSetStr(dict, C.CString("ID"), C.CString(d.ID))<0 {
+	if C.dictSetStr(dict, C.CString("ID"), C.CString(d.ID)) < 0 {
 		return cNG
 	}
 	if dictSetList(dict, "CPEs", d.CPEs) < cOK {
@@ -93,11 +96,11 @@ func vulnsDigest(id *C.char, dict *C.PyObject) C.int {
 func dictSetList(dict *C.PyObject, key string, strList []string) C.int {
 	tmp := C.newList()
 	for _, str := range strList {
-		if C.listAppendStr(tmp, C.CString(str))<0 {
+		if C.listAppendStr(tmp, C.CString(str)) < 0 {
 			return cNG
 		}
 	}
-	if C.dictSetObj(dict, C.CString(key), tmp)<0 {
+	if C.dictSetObj(dict, C.CString(key), tmp) < 0 {
 		return cNG
 	}
 	return cOK
@@ -109,47 +112,3 @@ func convFloat2Str(xx []float64) (r []string) {
 	}
 	return
 }
-
-/*
-func processReport(args []string) (err error) {
-
-	if len(args) < 1 {
-		err = fmt.Errorf("too few arguments")
-		return
-	}
-	ids := args
-
-	var c vulns.Config
-	c, err = vulns.LoadConfig(confFile)
-	if err != nil {
-		return
-	}
-
-	err = vulns.Init(c)
-	if err != nil {
-		return
-	}
-
-	for _, id := range ids {
-		err = _processReport(id)
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func _processReport(id string) (err error) {
-	var r vulns.VulnReport
-	r, err = vulns.LoadVulnReportFromID(id)
-	if err != nil {
-		return
-	}
-	fmt.Println("----")
-	fmt.Println(r)
-	return
-}
-// #cgo LDFLAGS: sub.o
-*/
-
