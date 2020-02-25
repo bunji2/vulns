@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 const (
-	confFile = "/opt/vulns/etc/config.json"
+	confFileName = "config.json"
 	cmdFmt   = "Usage: %s [ fetch YYYY [ csv out.csv | json ] | digest id [ ... ] | report id [ ... ] | help | version ]\n"
 )
 
@@ -33,6 +34,8 @@ var helpItems = [][]string{
 	},
 }
 
+var confFile string
+
 func main() {
 	os.Exit(run())
 }
@@ -42,6 +45,7 @@ func run() int {
 		fmt.Fprintf(os.Stderr, cmdFmt, os.Args[0])
 		return 1
 	}
+	confFile = resolvConfFile()
 
 	cmd := os.Args[1]
 
@@ -81,3 +85,12 @@ func processVersion() error {
 	fmt.Printf("Vulns Version:%s\n", VERSION)
 	return nil
 }
+
+func resolvConfFile() string {
+	exe, err := os.Executable()
+	if err == nil {
+		return filepath.Dir(exe) + "/" + confFileName
+	}
+	return confFileName
+}
+
