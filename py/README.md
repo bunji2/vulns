@@ -1,6 +1,6 @@
 # vulnspy
 
-Golang で実装した vulns パッケージの Python 用コネクタ。
+Golang で実装した vulns パッケージの Python2 用コネクタ。
 
 ----
 
