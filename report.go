@@ -26,7 +26,6 @@ func (v VulnReport) String() string {
 		strings.Join(v.CPEs, ","),
 		strings.Join(v.CVEs, ","),
 		strings.Join(v.CVSSv3(), ","))
-	//		strings.Join(pickupCVSSv3(v.CVSSs), ""))
 }
 
 // CVSSv3 は脆弱性レポートの CVSS のリストの中から CVSSv3 を抜き出す関数
@@ -41,29 +40,6 @@ func pickupCVSSv3(cvsss []string) (r []string) {
 		if strings.HasPrefix(cvss, "CVSS") {
 			r = append(r, cvss)
 		}
-	}
-	return
-}
-
-// Save は脆弱性レポートを JSON 形式でファイル保存する関数
-func (v VulnReport) Save(outFile string) (err error) {
-	//fmt.Println(outFile)
-	if useGzip {
-		err = SaveGzipedJSON(outFile, v)
-	} else {
-		err = SaveJSON(outFile, v)
-	}
-	return
-}
-
-// LoadVulnReport は JSON 形式のファイルから脆弱性レポートを読み出す関数
-func LoadVulnReport(filePath string) (r VulnReport, err error) {
-	r = VulnReport{}
-
-	if useGzip {
-		err = LoadGzipedJSON(filePath, &r)
-	} else {
-		err = LoadJSON(filePath, &r)
 	}
 	return
 }

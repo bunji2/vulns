@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -138,27 +137,9 @@ func SaveCSVs(csvFilePath string, records []VulnReport) (err error) {
 
 // SaveJSONs : JSON 形式ファイルにデータを保存する
 func SaveJSONs(records []VulnReport) (err error) {
-	cveIDsFile := fmt.Sprintf(`%s/cveids.json`, dataFolder)
-	//cveIDs := map[string]string{}
-	//LoadJSON(cveIDsFile, &cveIDs)
-	/*
-		var cveIDs map[string]string
-		if fileExists(cveIDsFile) {
-			err = LoadJSON(cveIDsFile, &cveIDs)
-			if err != nil {
-				return
-			}
-		} else {
-			cveIDs = map[string]string{}
-		}
-	*/
+	//cveIDsFile := fileOp.CveIDsFilePath()
 	for _, record := range records {
-		//fmt.Println("record:", record)
-		outFile := fmt.Sprintf(`%s/%s.json`, dataFolder, record.ID)
-		if useGzip {
-			outFile = outFile + ".gz"
-		}
-		err = record.Save(outFile)
+		err = fileOp.SaveVulnReport(record)
 		if err != nil {
 			break
 		}
@@ -167,7 +148,8 @@ func SaveJSONs(records []VulnReport) (err error) {
 		}
 	}
 	if err == nil {
-		err = SaveJSON(cveIDsFile, cveIDs)
+		err = fileOp.SaveCveIDs(cveIDs)
+		//err = SaveJSON(cveIDsFile, cveIDs)
 	}
 	return
 }
@@ -183,3 +165,25 @@ func dirExists(dirPath string) bool {
 	f, err := os.Stat(dirPath)
 	return !os.IsNotExist(err) && f.IsDir()
 }
+
+/*
+// loadStrMap は JSON 形式で保存された文字列マップ(map[string]string)を読み出す関数
+func loadStrMap(filePath string) (r map[string]string, err error) {
+
+	r = map[string]string{}
+
+	// バイト列読み出し
+	var bytes []byte
+	bytes, err = ioutil.ReadFile(filePath)
+	if err != nil {
+		return
+	}
+
+	// json 形式のデコード
+	err = json.Unmarshal(bytes, &r)
+	if err != nil {
+		return
+	}
+	return
+}
+*/
