@@ -11,38 +11,38 @@ import (
 )
 
 const (
-	// defaultPat は主要な脆弱性のテキストのパターン
+	// defaultVulnPat は主要な脆弱性のテキストのパターン
 	defaultVulnPat     = `(における|において|に関する|に)(.*脆弱性)`
 	defaultPickupIndex = 2 // (.+脆弱性) の部分のインデックス番号
 )
 
-var dataFolder string        // 脆弱性レポートデータの格納されるフォルダ
-var cveIDs map[string]string // cveID のリスト
-
 var kwRule TypeKwRule // キーワードルールのリスト
 
 var vulnPatReg *regexp.Regexp // 脆弱性テキストのパターンの正規表現オブジェクト
-var pickupIndex int           // 上の正規表現のマッチング結果から抽出すつインデクス番号
+var pickupIndex int           // 上の正規表現のマッチング結果から抽出するインデクス番号
 
 // Init はこのパッケージを初期化する関数
 func Init(c Config) (err error) {
+	// vulns パッケージの初期化
+	err = vulns.Init(vulns.Config{
+		DataFolder: c.DataFolder,
+		UseGzip:    c.UseGzip,
+	})
+	if err != nil {
+		return
+	}
+
 	// データフォルダの有無をチェック
 	if !dirExists(c.DataFolder) {
 		err = fmt.Errorf("%s is not directory", c.DataFolder)
 		return
 	}
-	dataFolder = c.DataFolder
 
-	// cveids.json の読み出し
-	cveIDsFile := fmt.Sprintf("%s/cveids.json", dataFolder)
-	cveIDs = map[string]string{}
-	vulns.LoadJSON(cveIDsFile, &cveIDs)
-	/*
-		cveIDs, err = loadStrMap(cveIDsFile)
-		if err != nil {
-			return
-		}
-	*/
+	// キーワードルールフォルダの有無をチェック
+	if !dirExists(c.RuleFolder) {
+		err = fmt.Errorf("%s is not directory", c.RuleFolder)
+		return
+	}
 
 	// キーワードルールファイルの読み出し
 	kwRuleFilePat := fmt.Sprintf("%s/*.json", c.RuleFolder)
@@ -59,16 +59,18 @@ func Init(c Config) (err error) {
 		}
 	}
 
-	// 主要な脆弱性テキストの正規表現オブジェクトを用意
-	if c.VulnPat != "" {
-		// コンフィグで指定されている場合
-		vulnPatReg = regexp.MustCompile(c.VulnPat)
-		pickupIndex = c.PickupIndex
-	} else {
-		// デフォルト
-		vulnPatReg = regexp.MustCompile(defaultVulnPat)
-		pickupIndex = defaultPickupIndex
+	// 主要な脆弱性テキストの正規表現が設定で省略されている場合はデフォルト値を使う
+	if c.VulnPat == "" {
+		c.VulnPat = defaultVulnPat
+		c.PickupIndex = defaultPickupIndex
 	}
+
+	// 主要な脆弱性テキストの正規表現オブジェクトを用意
+	vulnPatReg = regexp.MustCompile(c.VulnPat)
+
+	// 正規表現のマッチング結果から抽出すつインデクス番号
+	pickupIndex = c.PickupIndex
+
 	return
 }
 
