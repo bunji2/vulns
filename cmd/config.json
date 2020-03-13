@@ -1,8 +1,7 @@
 {
-    "describe": "JVNDB レポートのダイジェスト化の試み",
+    "describe": "sample",
 	"data_folder": "./data",
 	"rule_folder": "./rules",
-	"vuln_pat": "(における|において|に関する|に)(.*脆弱性)",
-	"pickup_index": 2,
 	"use_gzip": true
 }
+
