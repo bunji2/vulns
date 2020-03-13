@@ -25,9 +25,9 @@ Vulns Help
 
 ```
 {
-	"describe": "設定ファイルサンプル",
-	"data_folder": "/opt/vulns/data",
-	"rule_folder": "/opt/vulns/rules",
+   "describe": "設定ファイルサンプル",
+   "data_folder": "/opt/vulns/data",
+   "rule_folder": "/opt/vulns/rules",
    "use_gzip": true
 }
 ```
