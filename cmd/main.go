@@ -1,3 +1,16 @@
+// 脆弱性レポートを操作するコマンド
+// 設定ファイル： 実行ファイルと同じフォルダの "config.json"
+// 設定ファイルのサンプル：
+//{
+//	"describe": "脆弱性レポートの操作用設定ファイル",
+//	"data_folder": "./data",
+//	"rule_folder": "./rules",
+//	"vuln_pat": "(における|において|に関する|に)(.*脆弱性)",
+//	"pickup_index": 2,
+//	"use_gzip": true
+//}
+//
+
 package main
 
 import (
@@ -8,9 +21,10 @@ import (
 
 const (
 	confFileName = "config.json"
-	cmdFmt   = "Usage: %s [ fetch YYYY [ csv out.csv | json ] | digest id [ ... ] | report id [ ... ] | help | version ]\n"
+	cmdFmt       = "Usage: %s [ fetch YYYY [ csv out.csv | json ] | digest id [ ... ] | report id [ ... ] | help | version ]\n"
 )
 
+// helpItems はヘルプ表示用の項目を格納する変数
 var helpItems = [][]string{
 	[]string{
 		"vulns fetch YYYY [ csv out.csv | json ]",
@@ -41,15 +55,19 @@ func main() {
 }
 
 func run() int {
+	// 引数のチェック
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, cmdFmt, os.Args[0])
 		return 1
 	}
+
+	// 設定ファイルのパスの特定
 	confFile = resolvConfFile()
 
-	cmd := os.Args[1]
-
 	var err error
+
+	// 第一引数のコマンド名で分岐
+	cmd := os.Args[1]
 	switch cmd {
 	case "fetch":
 		err = processFetch(os.Args[2:])
@@ -61,6 +79,10 @@ func run() int {
 		err = processVersion()
 	case "help":
 		err = processHelp()
+
+	// case "Foo"
+	// コマンドを追加するときはこの位置に挿入する。
+
 	default:
 		err = fmt.Errorf(`cmd %s is unknown`, cmd)
 	}
@@ -73,6 +95,7 @@ func run() int {
 	return 0
 }
 
+// processHelp はヘルプ表示関数
 func processHelp() error {
 	fmt.Fprintf(os.Stderr, "Vulns Help\n")
 	for _, helpItem := range helpItems {
@@ -81,16 +104,21 @@ func processHelp() error {
 	return nil
 }
 
+// processVersion はバージョン表示関数
 func processVersion() error {
 	fmt.Printf("Vulns Version:%s\n", VERSION)
 	return nil
 }
 
+// resolvConfFile は設定ファイルのパスを特定する関数
 func resolvConfFile() string {
+	// 実行ファイルのパスを特定
 	exe, err := os.Executable()
 	if err == nil {
+		// 実行ファイルのあるディレクトリ配下の設定ファイルのパス
 		return filepath.Dir(exe) + "/" + confFileName
 	}
+
+	// つまりカレントディレクトリ配下の設定ファイルのパス
 	return confFileName
 }
-
