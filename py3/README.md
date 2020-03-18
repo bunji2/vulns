@@ -30,7 +30,7 @@ REDHAT_SUPPORT_PRODUCT_VERSION="7"
 Linux iskandar 3.10.0-1062.12.1.el7.x86_64 #1 SMP Tue Feb 4 23:02:59 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
 ```
 
-### GCC と Python 関連のパッケージ
+### GCC と Python3 関連のパッケージ
 
 ```
 [root@iskandar ~]# rpm -qa | grep -e gcc -e python3
