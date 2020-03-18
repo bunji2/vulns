@@ -66,7 +66,7 @@ golang のインストールには、https://golang.org/doc/install#install を�
 
 ### pkg-config を使用
 
-Python の C-API を使用するため、Python パッケージのコンパイル設定のヘッダファイルの所在やリンク設定の参照に pkg-config を使用する。
+Python3 の C-API を使用するため、Python3 パッケージのコンパイル設定のヘッダファイルの所在やリンク設定の参照に pkg-config を使用する。
 
 ```
 [root@iskandar ~]# rpm -qa | grep pkgconfig
