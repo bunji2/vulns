@@ -46,6 +46,10 @@ var helpItems = [][]string{
 		"vulns version",
 		"バージョンの表示",
 	},
+	[]string{
+		"vulns index",
+		"インデックスの作成",
+	},
 }
 
 var confFile string
@@ -79,6 +83,8 @@ func run() int {
 		err = processVersion()
 	case "help":
 		err = processHelp()
+	case "index":
+		err = processIndex(os.Args[2:])
 
 	// case "Foo"
 	// コマンドを追加するときはこの位置に挿入する。

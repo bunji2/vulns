@@ -24,3 +24,8 @@ func Init(c Config) (err error) {
 func LoadVulnReportFromID(id string) (VulnReport, error) {
 	return fileOp.LoadVulnReport(id)
 }
+
+// GetDataFolder はパッケージが使用しているデータフォルダのパスを返す関数。
+func GetDataFolder() string {
+	return fileOp.dataFolder
+}
