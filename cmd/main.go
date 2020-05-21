@@ -47,8 +47,12 @@ var helpItems = [][]string{
 		"バージョンの表示",
 	},
 	[]string{
-		"vulns index",
+		"vulns index [verbose]",
 		"インデックスの作成",
+	},
+	[]string{
+		"vulns html",
+		"HTMLの作成",
 	},
 }
 
