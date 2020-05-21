@@ -15,10 +15,12 @@ type KwData struct {
 
 // LoadKwData はファイルに保存された KwData を読みだす関数。
 func LoadKwData(filePath string) (r *KwData, err error) {
-	err = vulns.LoadJSON(filePath, r)
+	var t KwData
+	err = vulns.LoadJSON(filePath, &t)
 	if err != nil {
 		return
 	}
+	r = &t
 	r.kwIDs = map[string]int{}
 	for kwID, kw := range r.Keywords {
 		r.kwIDs[kw] = kwID

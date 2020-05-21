@@ -1,3 +1,3 @@
 package main
 // VERSION : version of program
-const VERSION = "1.5a; 2020/05/20"
+const VERSION = "1.5b; 2020/05/21"

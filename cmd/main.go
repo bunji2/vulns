@@ -85,6 +85,8 @@ func run() int {
 		err = processHelp()
 	case "index":
 		err = processIndex(os.Args[2:])
+	case "html":
+		err = processHTML(os.Args[2:])
 
 	// case "Foo"
 	// コマンドを追加するときはこの位置に挿入する。

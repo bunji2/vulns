@@ -1,5 +1,5 @@
 // 取得した脆弱性レポートデータとキーワードとの対応表を作成する
-// Usage: vulns index
+// Usage: vulns index [verbose]
 
 package main
 
@@ -13,18 +13,24 @@ import (
 )
 
 const (
-	cmdIndexFmt = "YYYY [ csv out.csv | json ]"
+	kwIndexFile = "index.json"
+	cmdIndexFmt = "vulns index [verbose]"
 )
 
 var kwd *KwData
 
 func processIndex(args []string) (err error) {
+	var verbose bool
+
 	// digest パッケージの初期化
 	err = digest.InitConfig(confFile)
 	if err != nil {
 		return
 	}
 
+	if len(args) > 0 && args[0] == "verbose" {
+		verbose = true
+	}
 	dataFolder := vulns.GetDataFolder()
 
 	// データフォルダに格納されている脆弱性レポートのＩＤのリストを取得
@@ -49,8 +55,10 @@ func processIndex(args []string) (err error) {
 			kwd.add(kwID, id)
 		}
 	}
-	kwd.Print()
-	err = kwd.Save(dataFolder + "/index.json")
+	if verbose {
+		kwd.Print()
+	}
+	err = kwd.Save(dataFolder + "/" + kwIndexFile)
 	return
 }
 
