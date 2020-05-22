@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/bunji2/vulns"
 	"github.com/bunji2/vulns/digest"
@@ -50,12 +51,13 @@ func processHTML(args []string) (err error) {
 		return
 	}
 
-	err = makeReportHTMLs(outDir, ids)
+	titles := map[string]string{}
+	err = makeReportHTMLs(outDir, ids, titles)
 	if err != nil {
 		return
 	}
 
-	err = makekwDataHTMLs(outDir)
+	err = makekwDataHTMLs(outDir, titles)
 
 	if verbose {
 		kwd.Print()
@@ -64,7 +66,7 @@ func processHTML(args []string) (err error) {
 }
 
 // makekwDataHTMLs は脆弱性レポートのキーワードデータ群からＨＴＭＬを作成する関数
-func makekwDataHTMLs(outDir string) (err error) {
+func makekwDataHTMLs(outDir string, titles map[string]string) (err error) {
 	var w *os.File
 	w, err = os.Create(outDir + "/" + kwDataHTML)
 	if err != nil {
@@ -76,11 +78,12 @@ func makekwDataHTMLs(outDir string) (err error) {
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>keywords</title>
 <body>`)
+	fmt.Fprintf(b, `<p><a href="index.html">[All reports]</a> </p><hr>`)
 	for kwID, kw := range kwd.Keywords {
 		fmt.Fprintf(b, `<p><a href="kw%d.html">%s</a></p> 
 `, kwID, kw)
 		filePath := fmt.Sprintf("%s/kw%d.html", outDir, kwID)
-		err = makekwDataHTML(filePath, kw, kwd.Tab[kwID])
+		err = makekwDataHTML(filePath, kw, kwd.Tab[kwID], titles)
 		if err != nil {
 			break
 		}
@@ -92,7 +95,7 @@ func makekwDataHTMLs(outDir string) (err error) {
 }
 
 // makekwDataHTML は脆弱性レポートのキーワードからＨＴＭＬを作成する関数
-func makekwDataHTML(filePath, kw string, ids []string) (err error) {
+func makekwDataHTML(filePath, kw string, ids []string, titles map[string]string) (err error) {
 	var w *os.File
 	w, err = os.Create(filePath)
 	if err != nil {
@@ -104,10 +107,12 @@ func makekwDataHTML(filePath, kw string, ids []string) (err error) {
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>%s</title>
 <body>`, kw)
+	fmt.Fprintf(b, `<p><a href="index.html">[All reports]</a> <a href="keywords.html">[All keywords]</a> </p><hr>`)
 	fmt.Fprintf(b, "<p><b>[%s]</b></p>\n", kw)
-	for _, id := range ids {
-		fmt.Fprintf(b, `<p><a href="%s.html">%s</a></p> 
-`, id, id)
+	for i := len(ids) - 1; i >= 0; i-- {
+		id := ids[i]
+		fmt.Fprintf(b, `<p><a href="%s.html">%s : %s</a></p> 
+`, id, id, titles[id])
 	}
 	fmt.Fprintln(b, `</body>
 </html>`)
@@ -116,7 +121,7 @@ func makekwDataHTML(filePath, kw string, ids []string) (err error) {
 }
 
 // makeReportHTMLs は脆弱性レポート群のＨＴＭＬを作成する関数
-func makeReportHTMLs(outDir string, ids []string) (err error) {
+func makeReportHTMLs(outDir string, ids []string, titles map[string]string) (err error) {
 	var w *os.File
 	w, err = os.Create(outDir + "/" + "index.html")
 	if err != nil {
@@ -129,7 +134,7 @@ func makeReportHTMLs(outDir string, ids []string) (err error) {
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>脆弱性レポート</title>
 <body>`)
-	fmt.Fprintf(b, `<p><a href="keywords.html">keywords</a></p>`)
+	fmt.Fprintf(b, `<p><a href="keywords.html">[All keywords]</a> </p><hr>`)
 	var r vulns.VulnReport
 	for i := len(ids) - 1; i >= 0; i-- {
 		id := ids[i]
@@ -140,6 +145,7 @@ func makeReportHTMLs(outDir string, ids []string) (err error) {
 		}
 		fmt.Fprintf(b, `<p><a href="%s.html">%s : %s</a></p>
 `, id, id, r.Title)
+		titles[id] = r.Title
 	}
 	fmt.Fprintln(b, `</body>
 </html>`)
@@ -170,16 +176,30 @@ func makeReportHTML(filePath, id string) (r vulns.VulnReport, err error) {
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>%s : %s</title>
 <body>`, r.ID, r.Title)
-	fmt.Fprintf(b, "<p><b>%s</b></p>\n", r.ID)
-	fmt.Fprintf(b, "<p>Title: %s</p>\n", r.Title)
-	fmt.Fprintf(b, "<p>Overview: %s</p>\n", r.Overview)
-	fmt.Fprintf(b, "<p>Impact: %s</p>\n<p>", r.Impact)
+	fmt.Fprintf(b, `<p><a href="index.html">[All reports]</a> <a href="keywords.html">[All keywords]</a> </p><hr>`)
+	fmt.Fprintf(b, "<p>")
+	kws := map[string]bool{}
 	for _, kw := range d.Vulns {
-		fmt.Fprintf(b, `<a href="kw%d.html">[%s]</a> `, kwd.kwIDs[kw], kw)
+		kws[kw] = true
 	}
 	for _, kw := range d.Impacts {
+		kws[kw] = true
+	}
+	fmt.Fprintf(b, `<a href="kw%d.html">[%s]</a> `, kwd.kwIDs[d.MainVuln], d.MainVuln)
+	for kw := range kws {
 		fmt.Fprintf(b, `<a href="kw%d.html">[%s]</a> `, kwd.kwIDs[kw], kw)
 	}
+	fmt.Fprintln(b, "</p>")
+
+	yyyy := r.ID[6:10] // JVNDB-YYYY-NNNNNN
+	jvnURL := fmt.Sprintf("https://jvndb.jvn.jp/ja/contents/%s/%s.html", yyyy, r.ID)
+	fmt.Fprintf(b, "<p><b><a href=\"%s\" target=\"_NEWWINDOW\">%s</a></b></p>\n", jvnURL, r.ID)
+	fmt.Fprintf(b, "<p>Title:%s</p>\n", r.Title)
+	fmt.Fprintf(b, "<p>Overview: %s</p>\n", r.Overview)
+	fmt.Fprintf(b, "<p>Impact: %s</p>\n<p>", r.Impact)
+	fmt.Fprintf(b, "<p>CPE:<br>%s</p>\n", strings.Join(r.CPEs, "<br>\n"))
+	fmt.Fprintf(b, "<p>CVSS:<br>%s</p>\n", strings.Join(r.CVSSs, "<br>\n"))
+	fmt.Fprintf(b, "<p>CVE:<br>%s</p>\n", strings.Join(r.CVEs, "<br>\n"))
 	fmt.Fprintln(b, `</body>
 </html>`)
 	w.Write(b.Bytes())
