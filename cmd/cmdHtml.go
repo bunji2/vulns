@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/bunji2/vulns"
 	"github.com/bunji2/vulns/digest"
@@ -122,6 +123,18 @@ func makekwDataHTML(filePath, kw string, ids []string, titles map[string]string)
 
 // makeReportHTMLs は脆弱性レポート群のＨＴＭＬを作成する関数
 func makeReportHTMLs(outDir string, ids []string, titles map[string]string) (err error) {
+	for idx := 0; idx <= len(ids)/100; idx++ {
+		err = make100ReportHTML(outDir, ids, titles, idx)
+		if err != nil {
+			break
+		}
+	}
+	return
+}
+
+/*
+// makeReportHTMLs は脆弱性レポート群のＨＴＭＬを作成する関数
+func makeReportHTMLs(outDir string, ids []string, titles map[string]string) (err error) {
 	var w *os.File
 	w, err = os.Create(outDir + "/" + "index.html")
 	if err != nil {
@@ -138,6 +151,77 @@ func makeReportHTMLs(outDir string, ids []string, titles map[string]string) (err
 	var r vulns.VulnReport
 	for i := len(ids) - 1; i >= 0; i-- {
 		id := ids[i]
+		filePath := fmt.Sprintf("%s/%s.html", outDir, id)
+		r, err = makeReportHTML(filePath, id)
+		if err != nil {
+			break
+		}
+		fmt.Fprintf(b, `<p><a href="%s.html">%s : %s</a></p>
+`, id, id, r.Title)
+		titles[id] = r.Title
+	}
+	fmt.Fprintln(b, `</body>
+</html>`)
+	w.Write(b.Bytes())
+	return
+}
+*/
+
+// make100ReportHTMLs は100個の脆弱性レポート群のインデックスＨＴＭＬを作成する関数
+func make100ReportHTML(outDir string, ids []string, titles map[string]string, idx int) (err error) {
+
+	//fmt.Println("#make100ReportHTML: idx =", idx, "len(ids)/100 =", len(ids)/100)
+
+	if idx < 0 || idx > len(ids)/100 {
+		err = fmt.Errorf("make100ReportHTML: idx is abnormal number(%d)", idx)
+		return
+	}
+	start := idx * 100
+	end := idx*100 + 100
+	if idx == len(ids)/100 {
+		end = len(ids)
+	}
+
+	//fmt.Println("#make100ReportHTML: start =", start, "end =", end)
+
+	var w *os.File
+	fileName := outDir + "/" + "index.html"
+	if idx > 0 {
+		fileName = fmt.Sprintf("%s/index%d.html", outDir, idx)
+	}
+	w, err = os.Create(fileName)
+	if err != nil {
+		return
+	}
+	defer w.Close()
+
+	b := bytes.NewBufferString("")
+	fmt.Fprintf(b, `<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>脆弱性レポート</title>
+<body>`)
+	fmt.Fprintf(b, `<p>Last-modified time: %s</p>`, time.Now().String())
+	fmt.Fprintf(b, `<p><a href="keywords.html">[All keywords]</a> </p><hr>`)
+
+	// PREV/NEXT
+	fmt.Fprintf(b, `<p>`)
+	if idx == 0 {
+		fmt.Fprintf(b, `<a href="index%d.html">[PREV]</a>`, len(ids)/100)
+	} else if idx == 1 {
+		fmt.Fprintf(b, `<a href="index.html">[PREV]</a>`)
+	} else if idx > 1 {
+		fmt.Fprintf(b, `<a href="index%d.html">[PREV]</a>`, idx-1)
+	}
+	if idx < len(ids)/100 {
+		fmt.Fprintf(b, `<a href="index%d.html">[NEXT]</a>`, idx+1)
+	} else if idx == len(ids)/100 {
+		fmt.Fprintf(b, `<a href="index.html">[NEXT]</a>`)
+	}
+	fmt.Fprintf(b, `</p><hr>`)
+
+	var r vulns.VulnReport
+	for i := start; i < end; i++ {
+		id := ids[len(ids)-1-i] // 後ろから
 		filePath := fmt.Sprintf("%s/%s.html", outDir, id)
 		r, err = makeReportHTML(filePath, id)
 		if err != nil {
